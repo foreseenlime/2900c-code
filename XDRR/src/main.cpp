@@ -24,7 +24,7 @@ using namespace vex;
 int forwards = Controller1.Axis3.position();
 int turn = Controller1.Axis1.position();
 int strafe = Controller1.Axis4.position();
-
+  
 int X1LS = forwards + strafe + turn;
 int X2LS = forwards - strafe + turn;
 int X1RS = forwards - strafe - turn;
