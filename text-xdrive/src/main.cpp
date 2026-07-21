@@ -1,4 +1,16 @@
 #include "main.h"
+#include "2900cInclude/globals.h"
+
+pros::Motor dr4b1(LIFTLEFT, pros::MotorGearset::red);
+pros::Motor dr4b2(LIFTRIGHT, pros::MotorGearset::red);
+
+// pros::MotorGroup dr4b({dr4b1, dr4b2});
+
+pros::MotorGroup dr4b(dr4b1);
+
+pros::Motor claw(CLAW, pros::MotorGearset::green);
+
+
 
 /**
  * A callback function for LLEMU's center button.
@@ -76,27 +88,61 @@ void autonomous() {}
 void opcontrol() {
 	pros::Controller master(pros::E_CONTROLLER_MASTER);
 
-	pros::Motor left_front(1, pros::v5::MotorGearset::green);
-	pros::Motor left_back(2, pros::v5::MotorGearset::green);
+	dr4b.append(dr4b2);
 
-	pros::Motor right_front(3, pros::v5::MotorGearset::green);
-	pros::Motor right_back(4, pros::v5::MotorGearset::green);
+	dr4b1.set_brake_mode(pros::E_MOTOR_BRAKE_HOLD);
+	dr4b2.set_brake_mode(pros::E_MOTOR_BRAKE_HOLD);
+	claw.set_brake_mode(pros::E_MOTOR_BRAKE_HOLD);
+
+	// pros::Motor left_front(1, pros::v5::MotorGearset::green);
+	// pros::Motor left_back(2, pros::v5::MotorGearset::green);
+
+	// pros::Motor right_front(3, pros::v5::MotorGearset::green);
+	// pros::Motor right_back(4, pros::v5::MotorGearset::green);
 
 
 	while (true) {
-		float forwards = master.get_analog(ANALOG_LEFT_Y);
-		float forwards_perc = forwards * (100/127);
+		// float forwards = master.get_analog(ANALOG_LEFT_Y);
+		// float forwards_perc = forwards * (100/127);
 
-		float turn = master.get_analog(ANALOG_RIGHT_X);
-		float turn_perc = turn * (100/127);
+		// float turn = master.get_analog(ANALOG_RIGHT_X);
+		// float turn_perc = turn * (100/127);
 
-		float strafe = master.get_analog(ANALOG_LEFT_X);
-		float strafe_perc = strafe * (100/127);
+		// float strafe = master.get_analog(ANALOG_LEFT_X);
+		// float strafe_perc = strafe * (100/127);
 
-		float left_front_spd = forwards + strafe + turn;
-		float left_back_spd = forwards - strafe + turn;
-		float right_front_spd = forwards - strafe - turn;
-		float right_back_spd = forwards + strafe - turn;
+		// float left_front_spd = forwards + strafe + turn;
+		// float left_back_spd = forwards - strafe + turn;
+		// float right_front_spd = forwards - strafe - turn;
+		// float right_back_spd = forwards + strafe - turn;
+
+		// move down
+		if(master.get_digital(DIGITAL_R1)) {
+			dr4b.move_velocity(100);
+		}
+
+		// move up
+		else if(master.get_digital(DIGITAL_R2)) {
+			dr4b.move_velocity(-100);
+		}
+
+		else {
+			dr4b.brake();
+		}
+
+		// close claw
+		if(master.get_digital(DIGITAL_L1)) {
+			claw.move_velocity(200);
+		}
+
+		// 
+		else if(master.get_digital(DIGITAL_L2)) {
+			claw.move_velocity(-200);
+		}
+
+		else {
+			claw.brake();
+		}
 
 		// Arcade control scheme
 		int dir = master.get_analog(ANALOG_LEFT_Y);    // Gets amount forward/backward from left joystick
