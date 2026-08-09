@@ -1,9 +1,12 @@
 #include "main.h"
 
-pros::Motor left_front(LEFTFRONT);
-pros::Motor left_back(LEFTBACK);
-pros::Motor right_front(RIGHTFRONT);
-pros::Motor right_back(RIGHTBACK);
+// constructing dirvetrain
+subsystems::Drivetrain drivetrain(
+	LEFTFRONT,
+	LEFTBACK,
+	RIGHTFRONT,
+	RIGHTBACK
+);
 
 pros::Motor dr4b1(LIFTLEFT, pros::MotorGearset::red);
 pros::Motor dr4b2(LIFTRIGHT, pros::MotorGearset::red);
@@ -70,7 +73,7 @@ void autonomous() {}
  * task, not resume it from where it left off.
  */
 void opcontrol() {
-	pros::Controller master(pros::E_CONTROLLER_MASTER);
+	Controller.clear();
 
 	dr4b.append(dr4b2);
 
@@ -86,49 +89,15 @@ void opcontrol() {
 
 	while (true) {
 
-		int forward = master.get_analog(FORWARD);
-		int turn    = master.get_analog(TURN);
-		int strafe  = master.get_analog(STRAFE);
-
-		int lf = forward + strafe + turn;
-		int lb = forward - strafe + turn;
-		int rf = forward - strafe - turn;
-		int rb = forward + strafe - turn;
-
-		// find highest of motor inputs
-		int max_val = std::abs(lf);
-
-		if(std::abs(lb) > max_val) {
-			max_val = std::abs(lb);
-		}
-		else if(std::abs(rf) > max_val) {
-			max_val = std::abs(rf);
-		}
-		else if(std::abs(rb) > max_val) {
-			max_val = std::abs(rb);
-		}
-
-		// scale 
-		if (max_val > 127) {
-			float scale = 127 / max_val;
-			lf = lf * scale;
-			lb = lb * scale;
-			rf = rf * scale;
-			rb = rb * scale;
-		}
-
-		// move motors
-		left_front.move(lf);
-		left_back.move(lb);
-		right_front.move(rf);
-		right_back.move(rb);
+		// drive functions
+		drivetrain.drive_functions();
 
 		// move dr4b down
-		if(master.get_digital(LIFTDOWN)) {
+		if(Controller.get_digital(LIFTDOWN)) {
 			dr4b.move_velocity(-100);
 		}
 		// move dr4b up
-		else if(master.get_digital(LIFTUP)) {
+		else if(Controller.get_digital(LIFTUP)) {
 			dr4b.move_velocity(100);
 		}
 		else {
@@ -136,11 +105,11 @@ void opcontrol() {
 		}
 
 		// close claw
-		if(master.get_digital(CLAWCLOSE)) {
+		if(Controller.get_digital(CLAWCLOSE)) {
 			claw.move_velocity(200);
 		}
 		// open claw
-		else if(master.get_digital(CLAWOPEN)) {
+		else if(Controller.get_digital(CLAWOPEN)) {
 			claw.move_velocity(-200);
 		}
 		else {
