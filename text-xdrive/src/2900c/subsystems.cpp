@@ -28,17 +28,17 @@ namespace subsystems {
 
         void Drivetrain::drive_functions() {
 
-            int forward = Controller.get_analog(FORWARD);
-            int turn = Controller.get_analog(TURN);
-            int strafe = Controller.get_analog(STRAFE);
+            float forward = Controller.get_analog(FORWARD);
+            float turn = Controller.get_analog(TURN);
+            float strafe = Controller.get_analog(STRAFE);
 
-            int left_front_p = forward + strafe + turn;
-            int left_back_p = forward - strafe + turn;
-            int right_front_p = forward - strafe - turn;
-            int right_back_p = forward + strafe - turn;
+            float left_front_p = forward + strafe + turn;
+            float left_back_p = forward - strafe + turn;
+            float right_front_p = forward - strafe - turn;
+            float right_back_p = forward + strafe - turn;
 
             // find highest of motor inputs
-            int max_val = std::abs(left_front_p);
+            float max_val = std::abs(left_front_p);
 
             if(std::abs(left_back_p) > max_val) {
                 max_val = std::abs(left_back_p);
@@ -50,26 +50,46 @@ namespace subsystems {
                 max_val = std::abs(right_back_p);
             }
 
-            Controller.print(0, 0, "ajajj");
-            Controller.clear();
-            pros::delay(20);
-
-            // scale 
-            if (max_val > 127) {
-                float scale = 127 / max_val;
-                left_front_p = left_front_p * scale;
-                left_back_p = left_back_p * scale;
-                right_front_p = right_front_p * scale;
-                right_back_p = right_back_p * scale;
+            // scale to the valid motor range
+            if (max_val > 127.0f) {
+                float scale = 127.0f / max_val;
+                left_front_p *= scale;
+                left_back_p *= scale;
+                right_front_p *= scale;
+                right_back_p *= scale;
             }
+
+            left_front_p = left_front_p;
+            left_back_p = left_back_p;
+            right_front_p = right_front_p;
+            right_back_p = right_back_p;
 
             // set the drivetrain power state
             set_drive_state(
-                left_front_p,
-                left_back_p,
-                right_front_p,
-                right_back_p
+                (left_front_p),
+                (left_back_p),
+                (right_front_p),
+                (right_back_p)
             );
+
+            // set brake mode to hold for koth, makes us harder to push
+            if(Controller.get_digital(DRIVEHOLD)) {
+                set_brake_mode(MOTOR_BRAKE_HOLD);
+            }
+
+            // set brake mode to coast, mostly just in case driver accidentily
+            // sets brake mode to hold when we dont want to
+            else if(Controller.get_digital(DRIVECOAST)) {
+                set_brake_mode(MOTOR_BRAKE_COAST);
+            }
+        }
+
+        void Drivetrain::set_brake_mode(enum pros::motor_brake_mode_e brake_mode) {
+            left_front.set_brake_mode(brake_mode);
+            left_back.set_brake_mode(brake_mode);
+
+            right_front.set_brake_mode(brake_mode);
+            right_back.set_brake_mode(brake_mode);
         }
 
     // --------------------------------------------------------------------------------
@@ -77,35 +97,86 @@ namespace subsystems {
     // claw class
         
         // constructor
-        Claw::Claw(int claw_port):
+        Claw::Claw(int claw_port, char claw_piston_port):
 
-        claw_motor(pros::Motor(claw_port))
-        {}
+        claw_motor(pros::Motor(claw_port)),
+        claw_piston(pros::adi::Pneumatics(claw_piston_port, true))
+        {
+            claw_motor.set_brake_mode(pros::E_MOTOR_BRAKE_HOLD);
+        }
 
         // set claw state
-        void Claw::set_claw_state(bool open) {
-            if(open) { // need to tweak this variable for how many degrees it
-                // is when opened fully
-                claw_motor.move_absolute(-90, claw_velocity);
-            }
-
-            else { // move claw to where it was at initialization
-                claw_motor.move_absolute(0, claw_velocity);
-            }
+        void Claw::set_claw_state(double angle, bool down) {
+            claw_motor.move_absolute(angle, 180);
+            claw_piston.set_value(down);
         }
 
         void Claw::claw_functions() {
             // close claw
             if(Controller.get_digital(CLAWCLOSE)) {
-                open = false;
+                claw_angle = 0;
             }
 
+            // need to tweak this variable for how many degrees it
+            // is when opened fully
             // open claw
             else if(Controller.get_digital(CLAWOPEN)) {
-                open = true;
+                claw_angle = 90;
 		    }
 
-            set_claw_state(open);
+            // toggle claw downwards
+            if(Controller.get_digital(CLAWDOWN)) {
+                down = true;
+            }
+
+            else if(Controller.get_digital(CLAWUP)) {
+                down = false;
+            }
+
+            set_claw_state(claw_angle, down);
+        }
+
+// ---------------------------------------------------------------------------------------
+
+    // dr4b class
+
+        // constructor
+        Lift::Lift(int dr4b_port1, int dr4b_port2):
+
+        dr4b1(pros::Motor(dr4b_port1, pros::MotorGearset::red)),
+        dr4b2(pros::Motor(dr4b_port2, pros::MotorGearset::red)),
+
+        dr4b(pros::MotorGroup({dr4b1}))
+        {
+            dr4b.append(dr4b2);
+
+            dr4b1.set_brake_mode(pros::E_MOTOR_BRAKE_HOLD);
+            dr4b2.set_brake_mode(pros::E_MOTOR_BRAKE_HOLD);
+        }
+
+        void Lift::set_lift_state(double lift_voltage) {
+            dr4b.move_voltage(floor(lift_voltage));
+        }
+
+        void Lift::lift_functions() {
+            // move dr4b down
+            if(Controller.get_digital(LIFTDOWN)) {
+                voltage = -12000;
+            }
+
+            // move dr4b up
+            else if(Controller.get_digital(LIFTUP)) {
+                voltage = 12000;
+		    }
+
+            // stop lift
+            // will this actually brake it?? idk if it doesn't, add a statement in the set
+            // lift state function that checks if its 0 and brake() it
+            else {
+                voltage = 0;
+            }
+
+            set_lift_state(voltage);
         }
 
 }

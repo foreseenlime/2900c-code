@@ -8,12 +8,17 @@ subsystems::Drivetrain drivetrain(
 	RIGHTBACK
 );
 
-pros::Motor dr4b1(LIFTLEFT, pros::MotorGearset::red);
-pros::Motor dr4b2(LIFTRIGHT, pros::MotorGearset::red);
+// constructing dr4b
+subsystems::Lift lift(
+	LIFTLEFT,
+	LIFTRIGHT
+);
 
-pros::MotorGroup dr4b(dr4b1);
-
-pros::Motor claw(CLAW, pros::MotorGearset::green);
+// constructing claw
+subsystems::Claw claw(
+	CLAW_MOTOR,
+	CLAW_PISTON
+);
 
 // DO THIS FOR DRIVETRAIN: https://www.vexforum.com/t/v5-x-drive-pros-code/62326
 
@@ -75,46 +80,27 @@ void autonomous() {}
 void opcontrol() {
 	Controller.clear();
 
-	dr4b.append(dr4b2);
-
 	// left_front.set_reversed(false);
 	// left_back.set_reversed(false);
 	// right_front.set_reversed(true);
 	// right_back.set_reversed(true);
 
-	dr4b1.set_brake_mode(pros::E_MOTOR_BRAKE_HOLD);
-	dr4b2.set_brake_mode(pros::E_MOTOR_BRAKE_HOLD);
-	claw.set_brake_mode(pros::E_MOTOR_BRAKE_HOLD);
-
-
 	while (true) {
+		// clear controller screen
+		Controller.clear();
+
+		// get charge and print to controller
+		double charge = pros::battery::get_capacity();
+		Controller.print(0, 0, "Charge: %.0lf", charge);
 
 		// drive functions
 		drivetrain.drive_functions();
 
-		// move dr4b down
-		if(Controller.get_digital(LIFTDOWN)) {
-			dr4b.move_velocity(-100);
-		}
-		// move dr4b up
-		else if(Controller.get_digital(LIFTUP)) {
-			dr4b.move_velocity(100);
-		}
-		else {
-			dr4b.brake();
-		}
+		// lift drive functions
+		lift.lift_functions();
 
-		// close claw
-		if(Controller.get_digital(CLAWCLOSE)) {
-			claw.move_velocity(200);
-		}
-		// open claw
-		else if(Controller.get_digital(CLAWOPEN)) {
-			claw.move_velocity(-200);
-		}
-		else {
-			claw.brake();
-		}
+		// claw driver functions
+		claw.claw_functions();
 
 		pros::delay(20);
 	}

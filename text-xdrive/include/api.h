@@ -27,9 +27,9 @@
 #include <cstdio>
 #include <cstdlib>
 #include <iostream>
+#include <math.h>
 #else /* (not) __cplusplus */
 #include <errno.h>
-#include <math.h>
 #include <stdbool.h>
 #include <stddef.h>
 #include <stdint.h>
