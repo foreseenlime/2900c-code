@@ -93,36 +93,69 @@ namespace subsystems {
         }
 
     // --------------------------------------------------------------------------------
+    // --------------------------------------------------------------------------------
 
-    // claw class
-        
+    // dr4b class
+
         // constructor
-        Claw::Claw(int claw_port, char claw_piston_port):
+        Lift::Lift(int dr4b_port1, int dr4b_port2,
+        int claw_port, char claw_piston_port):
+
+        dr4b_motor1(pros::Motor(dr4b_port1, pros::MotorGearset::red)),
+        dr4b_motor2(pros::Motor(dr4b_port2, pros::MotorGearset::red)),
+
+        dr4b(pros::MotorGroup({dr4b_motor1})),
 
         claw_motor(pros::Motor(claw_port)),
-        claw_piston(pros::adi::Pneumatics(claw_piston_port, true))
+        claw_piston(pros::adi::DigitalOut(claw_piston_port))
         {
+            dr4b.append(dr4b_motor2);
+
+            dr4b_motor1.set_brake_mode(pros::E_MOTOR_BRAKE_HOLD);
+            dr4b_motor2.set_brake_mode(pros::E_MOTOR_BRAKE_HOLD);
             claw_motor.set_brake_mode(pros::E_MOTOR_BRAKE_HOLD);
         }
 
-        // set claw state
-        void Claw::set_claw_state(double angle, bool down) {
-            claw_motor.move_absolute(angle, 180);
+        void Lift::set_lift_state(double lift_voltage, double claw_voltage, bool down) {
+            dr4b.move_voltage(floor(lift_voltage));
+            claw_motor.move_voltage(floor(claw_voltage));
             claw_piston.set_value(down);
         }
 
-        void Claw::claw_functions() {
+        void Lift::lift_functions() {
+            // move dr4b down
+            if(Controller.get_digital(LIFTDOWN)) {
+                dr4b_voltage = -12000;
+            }
+
+            // move dr4b up
+            else if(Controller.get_digital(LIFTUP)) {
+                dr4b_voltage = 12000;
+		    }
+
+            // stop lift
+            // will this actually brake it?? idk if it doesn't, add a statement in the set
+            // lift state function that checks if its 0 and brake() it
+            else {
+                dr4b_voltage = 0;
+            }
+
+// ---------claw functions-----------------------------------------------------------------
             // close claw
             if(Controller.get_digital(CLAWCLOSE)) {
-                claw_angle = 0;
+                claw_voltage = -11000;
             }
 
             // need to tweak this variable for how many degrees it
             // is when opened fully
             // open claw
             else if(Controller.get_digital(CLAWOPEN)) {
-                claw_angle = 90;
+                claw_voltage = 11000;
 		    }
+
+            else {
+                claw_voltage = 0;
+            }
 
             // toggle claw downwards
             if(Controller.get_digital(CLAWDOWN)) {
@@ -133,50 +166,7 @@ namespace subsystems {
                 down = false;
             }
 
-            set_claw_state(claw_angle, down);
-        }
-
-// ---------------------------------------------------------------------------------------
-
-    // dr4b class
-
-        // constructor
-        Lift::Lift(int dr4b_port1, int dr4b_port2):
-
-        dr4b1(pros::Motor(dr4b_port1, pros::MotorGearset::red)),
-        dr4b2(pros::Motor(dr4b_port2, pros::MotorGearset::red)),
-
-        dr4b(pros::MotorGroup({dr4b1}))
-        {
-            dr4b.append(dr4b2);
-
-            dr4b1.set_brake_mode(pros::E_MOTOR_BRAKE_HOLD);
-            dr4b2.set_brake_mode(pros::E_MOTOR_BRAKE_HOLD);
-        }
-
-        void Lift::set_lift_state(double lift_voltage) {
-            dr4b.move_voltage(floor(lift_voltage));
-        }
-
-        void Lift::lift_functions() {
-            // move dr4b down
-            if(Controller.get_digital(LIFTDOWN)) {
-                voltage = -12000;
-            }
-
-            // move dr4b up
-            else if(Controller.get_digital(LIFTUP)) {
-                voltage = 12000;
-		    }
-
-            // stop lift
-            // will this actually brake it?? idk if it doesn't, add a statement in the set
-            // lift state function that checks if its 0 and brake() it
-            else {
-                voltage = 0;
-            }
-
-            set_lift_state(voltage);
+            set_lift_state(dr4b_voltage, claw_voltage, down);
         }
 
 }

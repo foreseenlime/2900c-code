@@ -24,7 +24,7 @@
         #define TURN ANALOG_RIGHT_X
         #define STRAFE ANALOG_LEFT_X
 
-        #define DRIVEHOLD DIGITAL_A
+        #define DRIVEHOLD DIGITAL_Y
         #define DRIVECOAST DIGITAL_B
 
     // dr4b
@@ -36,4 +36,4 @@
         #define CLAWOPEN DIGITAL_L2
 
         #define CLAWDOWN DIGITAL_DOWN
-        #define CLAWUP DIGITAL_UP
+        #define CLAWUP DIGITAL_RIGHT

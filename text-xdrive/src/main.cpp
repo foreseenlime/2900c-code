@@ -11,11 +11,7 @@ subsystems::Drivetrain drivetrain(
 // constructing dr4b
 subsystems::Lift lift(
 	LIFTLEFT,
-	LIFTRIGHT
-);
-
-// constructing claw
-subsystems::Claw claw(
+	LIFTRIGHT,
 	CLAW_MOTOR,
 	CLAW_PISTON
 );
@@ -98,9 +94,6 @@ void opcontrol() {
 
 		// lift drive functions
 		lift.lift_functions();
-
-		// claw driver functions
-		claw.claw_functions();
 
 		pros::delay(20);
 	}

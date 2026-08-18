@@ -25,49 +25,31 @@ namespace subsystems {
             void set_brake_mode(enum pros::motor_brake_mode_e brake_mode);
     };
 
-    class Claw {
-
-        private:
-            pros::Motor claw_motor;
-            pros::adi::Pneumatics claw_piston;
-
-            double claw_angle = 0;
-
-            bool open = false;
-            bool down = true;
-
-        public:
-            // constructor
-            Claw(
-                int claw_port,
-                char claw_piston_port
-            );
-
-            void set_claw_state(double angle, bool down);
-            void claw_functions();
-
-    };
-
     class Lift {
 
         private:
-            pros::Motor dr4b1;
-            pros::Motor dr4b2;
+            pros::Motor claw_motor;
+            pros::adi::DigitalOut claw_piston;
+            double claw_voltage;
+            bool down = true;
 
+            pros::Motor dr4b_motor1;
+            pros::Motor dr4b_motor2;
             pros::MotorGroup dr4b;
 
-            double voltage;
+            double dr4b_voltage;
 
         public:
             // constructor
             Lift(
                 int dr4b_port1,
-                int dr4b_port2
+                int dr4b_port2,
+                int claw_port,
+                char claw_piston_port
             );
 
-            void set_lift_state(double lift_voltage);
+            void set_lift_state(double lift_voltage, double claw_voltage, bool down);
             void lift_functions();
-            void set_brake_mode(enum pros::motor_brake_mode_e brake_mode);
 
     };
 }
