@@ -595,7 +595,7 @@
       "slot": 1,
       "icon": "planet",
       "after": "none",
-      "description": "x drive code for 2900c"
+      "description": "squared drive"
     },
     "use_early_access": false
   }

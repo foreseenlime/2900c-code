@@ -76,18 +76,13 @@ void autonomous() {}
 void opcontrol() {
 	Controller.clear();
 
-	// left_front.set_reversed(false);
-	// left_back.set_reversed(false);
-	// right_front.set_reversed(true);
-	// right_back.set_reversed(true);
-
 	while (true) {
-		// clear controller screen
-		Controller.clear();
 
 		// get charge and print to controller
 		double charge = pros::battery::get_capacity();
-		Controller.print(0, 0, "Charge: %.0lf", charge);
+		Controller.print(0, 0, "Charge: %.0lf%", charge);
+		Controller.clear();
+		pros::delay(20);
 
 		// drive functions
 		drivetrain.drive_functions();

@@ -30,14 +30,14 @@ namespace subsystems {
         private:
             pros::Motor claw_motor;
             pros::adi::DigitalOut claw_piston;
-            double claw_voltage;
+            double claw_speed;
             bool down = true;
 
             pros::Motor dr4b_motor1;
             pros::Motor dr4b_motor2;
             pros::MotorGroup dr4b;
 
-            double dr4b_voltage;
+            double dr4b_speed;
 
         public:
             // constructor
@@ -48,7 +48,7 @@ namespace subsystems {
                 char claw_piston_port
             );
 
-            void set_lift_state(double lift_voltage, double claw_voltage, bool down);
+            void set_lift_state(double lift_speed, double claw_speed, bool down);
             void lift_functions();
 
     };

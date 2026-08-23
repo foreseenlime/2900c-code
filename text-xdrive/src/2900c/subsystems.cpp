@@ -24,6 +24,23 @@ namespace subsystems {
             left_back.move(left_back_p);
             right_front.move(right_front_p);
             right_back.move(right_back_p);
+
+            // if joysticks aren't being pressed, brake motors
+            // this part is required to use our koth brake hold mode
+            if(left_front_p == 0 && left_back_p == 0 && right_front_p == 0 && right_back_p == 0){
+                left_front.brake();
+                left_back.brake();
+                right_front.brake();
+                right_back.brake();
+            }
+        }
+
+        void Drivetrain::set_brake_mode(enum pros::motor_brake_mode_e brake_mode) {
+            left_front.set_brake_mode(brake_mode);
+            left_back.set_brake_mode(brake_mode);
+
+            right_front.set_brake_mode(brake_mode);
+            right_back.set_brake_mode(brake_mode);
         }
 
         void Drivetrain::drive_functions() {
@@ -31,6 +48,10 @@ namespace subsystems {
             float forward = Controller.get_analog(FORWARD);
             float turn = Controller.get_analog(TURN);
             float strafe = Controller.get_analog(STRAFE);
+
+            forward = linear_to_squared(forward, 127);
+            turn = linear_to_squared(turn, 127);
+            strafe = linear_to_squared(strafe, 127);
 
             float left_front_p = forward + strafe + turn;
             float left_back_p = forward - strafe + turn;
@@ -84,14 +105,6 @@ namespace subsystems {
             }
         }
 
-        void Drivetrain::set_brake_mode(enum pros::motor_brake_mode_e brake_mode) {
-            left_front.set_brake_mode(brake_mode);
-            left_back.set_brake_mode(brake_mode);
-
-            right_front.set_brake_mode(brake_mode);
-            right_back.set_brake_mode(brake_mode);
-        }
-
     // --------------------------------------------------------------------------------
     // --------------------------------------------------------------------------------
 
@@ -114,47 +127,54 @@ namespace subsystems {
             dr4b_motor1.set_brake_mode(pros::E_MOTOR_BRAKE_HOLD);
             dr4b_motor2.set_brake_mode(pros::E_MOTOR_BRAKE_HOLD);
             claw_motor.set_brake_mode(pros::E_MOTOR_BRAKE_HOLD);
+
+            claw_piston.set_value(true);
         }
 
-        void Lift::set_lift_state(double lift_voltage, double claw_voltage, bool down) {
-            dr4b.move_voltage(floor(lift_voltage));
-            claw_motor.move_voltage(floor(claw_voltage));
+        void Lift::set_lift_state(double lift_speed, double claw_speed, bool down) {
+            dr4b.move_velocity(floor(lift_speed));
+            claw_motor.move_velocity(floor(claw_speed));
             claw_piston.set_value(down);
+
+            // if either voltage is 0 brake them
+            if(lift_speed == 0) {dr4b.brake();}
+            if(claw_speed == 0) {claw_motor.brake();}
         }
 
         void Lift::lift_functions() {
-            // move dr4b down
+            // move dr4b up
             if(Controller.get_digital(LIFTDOWN)) {
-                dr4b_voltage = -12000;
+                dr4b_speed = -100;
+                down = false;
             }
 
-            // move dr4b up
+            // move dr4b down
             else if(Controller.get_digital(LIFTUP)) {
-                dr4b_voltage = 12000;
+                dr4b_speed = 100;
 		    }
 
             // stop lift
             // will this actually brake it?? idk if it doesn't, add a statement in the set
             // lift state function that checks if its 0 and brake() it
             else {
-                dr4b_voltage = 0;
+                dr4b_speed = 0;
             }
 
 // ---------claw functions-----------------------------------------------------------------
             // close claw
             if(Controller.get_digital(CLAWCLOSE)) {
-                claw_voltage = -11000;
+                claw_speed = -180;
             }
 
             // need to tweak this variable for how many degrees it
             // is when opened fully
             // open claw
             else if(Controller.get_digital(CLAWOPEN)) {
-                claw_voltage = 11000;
+                claw_speed = 180;
 		    }
 
             else {
-                claw_voltage = 0;
+                claw_speed = 0;
             }
 
             // toggle claw downwards
@@ -166,7 +186,7 @@ namespace subsystems {
                 down = false;
             }
 
-            set_lift_state(dr4b_voltage, claw_voltage, down);
+            set_lift_state(dr4b_speed, claw_speed, down);
         }
 
 }
