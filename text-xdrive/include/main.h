@@ -41,6 +41,16 @@
  */
 //#include "okapi/api.hpp"
 
+#include "2900cInclude/globals.h"
+#include "2900cInclude/devices.hpp"
+#include "2900cInclude/subsystems.hpp"
+#include "2900cInclude/util.hpp"
+#include "2900cInclude/autons.hpp"
+
+// declaring subsystems for autons
+subsystems::Drivetrain drivetrain;
+subsystems::Lift lift;
+
 /**
  * If you find doing pros::Motor() to be tedious and you'd prefer just to do
  * Motor, you can use the namespace with the following commented out line.

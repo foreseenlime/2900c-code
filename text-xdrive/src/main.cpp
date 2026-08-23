@@ -1,32 +1,23 @@
 #include "main.h"
-#include "2900cInclude/globals.h"
 
-pros::Motor dr4b1(LIFTLEFT, pros::MotorGearset::red);
-pros::Motor dr4b2(LIFTRIGHT, pros::MotorGearset::red);
+// constructing dirvetrain
+subsystems::Drivetrain drivetrain(
+	LEFTFRONT,
+	LEFTBACK,
+	RIGHTFRONT,
+	RIGHTBACK
+);
 
-// pros::MotorGroup dr4b({dr4b1, dr4b2});
+// constructing dr4b
+subsystems::Lift lift(
+	LIFTLEFT,
+	LIFTRIGHT,
+	CLAW_MOTOR,
+	CLAW_PISTON
+);
 
-pros::MotorGroup dr4b(dr4b1);
+// DO THIS FOR DRIVETRAIN: https://www.vexforum.com/t/v5-x-drive-pros-code/62326
 
-pros::Motor claw(CLAW, pros::MotorGearset::green);
-
-
-
-/**
- * A callback function for LLEMU's center button.
- *
- * When this callback is fired, it will toggle line 2 of the LCD text between
- * "I was pressed!" and nothing.
- */
-void on_center_button() {
-	static bool pressed = false;
-	pressed = !pressed;
-	if (pressed) {
-		pros::lcd::set_text(2, "I was pressed!");
-	} else {
-		pros::lcd::clear_line(2);
-	}
-}
 
 /**
  * Runs initialization code. This occurs as soon as the program is started.
@@ -36,9 +27,6 @@ void on_center_button() {
  */
 void initialize() {
 	pros::lcd::initialize();
-	pros::lcd::set_text(1, "Hello PROS User!");
-
-	pros::lcd::register_btn1_cb(on_center_button);
 }
 
 /**
@@ -86,66 +74,22 @@ void autonomous() {}
  * task, not resume it from where it left off.
  */
 void opcontrol() {
-	pros::Controller master(pros::E_CONTROLLER_MASTER);
-
-	dr4b.append(dr4b2);
-
-	dr4b1.set_brake_mode(pros::E_MOTOR_BRAKE_HOLD);
-	dr4b2.set_brake_mode(pros::E_MOTOR_BRAKE_HOLD);
-	claw.set_brake_mode(pros::E_MOTOR_BRAKE_HOLD);
-
-	// pros::Motor left_front(1, pros::v5::MotorGearset::green);
-	// pros::Motor left_back(2, pros::v5::MotorGearset::green);
-
-	// pros::Motor right_front(3, pros::v5::MotorGearset::green);
-	// pros::Motor right_back(4, pros::v5::MotorGearset::green);
-
+	Controller.clear();
 
 	while (true) {
-		// float forwards = master.get_analog(ANALOG_LEFT_Y);
-		// float forwards_perc = forwards * (100/127);
 
-		// float turn = master.get_analog(ANALOG_RIGHT_X);
-		// float turn_perc = turn * (100/127);
+		// get charge and print to controller
+		double charge = pros::battery::get_capacity();
+		Controller.print(0, 0, "Charge: %.0lf%", charge);
+		Controller.clear();
+		pros::delay(20);
 
-		// float strafe = master.get_analog(ANALOG_LEFT_X);
-		// float strafe_perc = strafe * (100/127);
+		// drive functions
+		drivetrain.drive_functions();
 
-		// float left_front_spd = forwards + strafe + turn;
-		// float left_back_spd = forwards - strafe + turn;
-		// float right_front_spd = forwards - strafe - turn;
-		// float right_back_spd = forwards + strafe - turn;
+		// lift drive functions
+		lift.lift_functions();
 
-		// move down
-		if(master.get_digital(DIGITAL_R1)) {
-			dr4b.move_velocity(100);
-		}
-
-		// move up
-		else if(master.get_digital(DIGITAL_R2)) {
-			dr4b.move_velocity(-100);
-		}
-
-		else {
-			dr4b.brake();
-		}
-
-		// close claw
-		if(master.get_digital(DIGITAL_L1)) {
-			claw.move_velocity(200);
-		}
-
-		// 
-		else if(master.get_digital(DIGITAL_L2)) {
-			claw.move_velocity(-200);
-		}
-
-		else {
-			claw.brake();
-		}
-
-		// Arcade control scheme
-		int dir = master.get_analog(ANALOG_LEFT_Y);    // Gets amount forward/backward from left joystick
-		int turn = master.get_analog(ANALOG_RIGHT_X);  // Gets the turn left/right from right joystick
+		pros::delay(20);
 	}
 }
