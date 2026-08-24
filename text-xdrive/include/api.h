@@ -28,6 +28,7 @@
 #include <cstdlib>
 #include <iostream>
 #include <math.h>
+#include <vector>
 #else /* (not) __cplusplus */
 #include <errno.h>
 #include <stdbool.h>

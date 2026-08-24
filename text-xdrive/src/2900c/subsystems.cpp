@@ -6,10 +6,10 @@ namespace subsystems {
 
         // constructor
         Drivetrain::Drivetrain(
-            int left_front_port,
-            int left_back_port,
-            int right_front_port,
-            int right_back_port
+            std::int8_t left_front_port,
+            std::int8_t left_back_port,
+            std::int8_t right_front_port,
+            std::int8_t right_back_port
         ):
 
         left_front(pros::Motor(left_front_port)),
@@ -45,64 +45,51 @@ namespace subsystems {
 
         void Drivetrain::drive_functions() {
 
-            float forward = Controller.get_analog(FORWARD);
-            float turn = Controller.get_analog(TURN);
-            float strafe = Controller.get_analog(STRAFE);
+            double forward = linear_to_squared(Controller.get_analog(FORWARD), 127);
+            double turn = linear_to_squared(Controller.get_analog(TURN), 127);
+            double strafe = linear_to_squared(Controller.get_analog(STRAFE), 127);
 
-            forward = linear_to_squared(forward, 127);
-            turn = linear_to_squared(turn, 127);
-            strafe = linear_to_squared(strafe, 127);
-
-            float left_front_p = forward + strafe + turn;
-            float left_back_p = forward - strafe + turn;
-            float right_front_p = forward - strafe - turn;
-            float right_back_p = forward + strafe - turn;
+            double left_front_p = forward + strafe + turn;
+            double left_back_p = forward - strafe + turn;
+            double right_front_p = forward - strafe - turn;
+            double right_back_p = forward + strafe - turn;
 
             // find highest of motor inputs
-            float max_val = std::abs(left_front_p);
-
-            if(std::abs(left_back_p) > max_val) {
-                max_val = std::abs(left_back_p);
-            }
-            else if(std::abs(right_front_p) > max_val) {
-                max_val = std::abs(right_front_p);
-            }
-            else if(std::abs(right_back_p) > max_val) {
-                max_val = std::abs(right_back_p);
-            }
+            double max_val = std::abs(left_front_p);
+            if(std::abs(left_back_p) > max_val) {max_val = std::abs(left_back_p);}
+            else if(std::abs(right_front_p) > max_val) {max_val = std::abs(right_front_p);}
+            else if(std::abs(right_back_p) > max_val) {max_val = std::abs(right_back_p);}
 
             // scale to the valid motor range
-            if (max_val > 127.0f) {
-                float scale = 127.0f / max_val;
+            if (max_val > 127) {
+                double scale = 127 / max_val;
                 left_front_p *= scale;
                 left_back_p *= scale;
                 right_front_p *= scale;
                 right_back_p *= scale;
             }
 
-            left_front_p = left_front_p;
-            left_back_p = left_back_p;
-            right_front_p = right_front_p;
-            right_back_p = right_back_p;
-
             // set the drivetrain power state
             set_drive_state(
-                (left_front_p),
-                (left_back_p),
-                (right_front_p),
-                (right_back_p)
+                floor(left_front_p), 
+                floor(left_back_p), 
+                floor(right_front_p), 
+                floor(right_back_p)
             );
 
             // set brake mode to hold for koth, makes us harder to push
-            if(Controller.get_digital(DRIVEHOLD)) {
-                set_brake_mode(MOTOR_BRAKE_HOLD);
-            }
+            if(Controller.get_digital(DRIVEHOLD)) {set_brake_mode(MOTOR_BRAKE_HOLD);}
 
             // set brake mode to coast, mostly just in case driver accidentily
             // sets brake mode to hold when we dont want to
-            else if(Controller.get_digital(DRIVECOAST)) {
-                set_brake_mode(MOTOR_BRAKE_COAST);
-            }
+            else if(Controller.get_digital(DRIVECOAST)) {set_brake_mode(MOTOR_BRAKE_COAST);}
+
+            // print all motor temps to brain console
+            console.printf(
+                "LF: %.0lf, LB: %.0lf, RF: %.0lf, RB: %.0lf \n", 
+                left_front.get_temperature(), left_back.get_temperature(), 
+                right_front.get_temperature(), right_back.get_temperature()
+            );
         }
 
     // --------------------------------------------------------------------------------
@@ -111,19 +98,17 @@ namespace subsystems {
     // dr4b class
 
         // constructor
-        Lift::Lift(int dr4b_port1, int dr4b_port2,
-        int claw_port, char claw_piston_port):
+        Lift::Lift(std::int8_t dr4b_port1, std::int8_t dr4b_port2,
+        std::int8_t claw_port, char claw_piston_port):
 
         dr4b_motor1(pros::Motor(dr4b_port1, pros::MotorGearset::red)),
         dr4b_motor2(pros::Motor(dr4b_port2, pros::MotorGearset::red)),
 
-        dr4b(pros::MotorGroup({dr4b_motor1})),
+        dr4b(pros::MotorGroup({dr4b_port1, dr4b_port2}, pros::MotorGearset::red)),
 
         claw_motor(pros::Motor(claw_port)),
         claw_piston(pros::adi::DigitalOut(claw_piston_port))
         {
-            dr4b.append(dr4b_motor2);
-
             dr4b_motor1.set_brake_mode(pros::E_MOTOR_BRAKE_HOLD);
             dr4b_motor2.set_brake_mode(pros::E_MOTOR_BRAKE_HOLD);
             claw_motor.set_brake_mode(pros::E_MOTOR_BRAKE_HOLD);
@@ -149,44 +134,33 @@ namespace subsystems {
             }
 
             // move dr4b down
-            else if(Controller.get_digital(LIFTUP)) {
-                dr4b_speed = 100;
-		    }
+            else if(Controller.get_digital(LIFTUP)) {dr4b_speed = 100;}
 
             // stop lift
-            // will this actually brake it?? idk if it doesn't, add a statement in the set
-            // lift state function that checks if its 0 and brake() it
-            else {
-                dr4b_speed = 0;
-            }
+            else {dr4b_speed = 0;}
 
-// ---------claw functions-----------------------------------------------------------------
+            // ---------claw functions------------------------------------------------------
             // close claw
-            if(Controller.get_digital(CLAWCLOSE)) {
-                claw_speed = -180;
-            }
+            if(Controller.get_digital(CLAWCLOSE)) {claw_speed = -180;}
 
-            // need to tweak this variable for how many degrees it
-            // is when opened fully
             // open claw
-            else if(Controller.get_digital(CLAWOPEN)) {
-                claw_speed = 180;
-		    }
+            else if(Controller.get_digital(CLAWOPEN)) {claw_speed = 180;}
 
-            else {
-                claw_speed = 0;
-            }
+            else {claw_speed = 0;}
 
             // toggle claw downwards
-            if(Controller.get_digital(CLAWDOWN)) {
-                down = true;
-            }
+            if(Controller.get_digital(CLAWDOWN)) {down = true;}
 
-            else if(Controller.get_digital(CLAWUP)) {
-                down = false;
-            }
+            else if(Controller.get_digital(CLAWUP)) {down = false;}
 
-            set_lift_state(dr4b_speed, claw_speed, down);
+            set_lift_state(dr4b_speed, claw_speed, down); 
+            
+            // print all temps to brain screen
+            std::vector<double> dr4b_temps = dr4b.get_temperature_all();
+            console.printf(
+                "dr4b1: %.0lf, dr4b2: %.0lf, claw: %.0lf",
+                dr4b_motor1.get_temperature(), dr4b_motor2.get_temperature(), claw_motor.get_temperature()
+            );
         }
 
 }
