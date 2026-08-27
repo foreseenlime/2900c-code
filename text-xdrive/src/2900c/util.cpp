@@ -15,3 +15,14 @@ double linear_to_squared(double input, double max_input) {
 double joystick_to_motor(double joystick, double max_input) {
     return joystick * (max_input / 127);
 }
+
+// convert degrees to radians
+double get_rad(double deg) {
+    return (deg / 180) * M_PI;
+}
+
+// convert rotation sensor degrees to distance
+// distance = rotations * circumference
+double deg_to_dist(double deg, double diameter) {
+    return (deg / 360) * (diameter * M_PI);
+}

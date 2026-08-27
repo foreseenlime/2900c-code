@@ -17,3 +17,13 @@ double linear_to_squared(double input, double max_input);
 // Good for if the drivetrain is using something like rpm or 
 // voltage and needs converting from the joystick values
 double joystick_to_motor(double joystick, double max_input);
+
+/**
+ * @brief Converts degrees to radians
+ */
+double get_rad(double deg);
+
+/**
+ * @brief Convert rotation sensor degrees to distance
+ */
+double deg_to_dist(double deg, double diameter);

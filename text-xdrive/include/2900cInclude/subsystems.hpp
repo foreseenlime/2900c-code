@@ -12,12 +12,20 @@ namespace subsystems {
             pros::Motor right_back;
 
         public:
+            // odom devices in public so they can be accessed externally
+            pros::Imu imu;
+            pros::Rotation horizontal;
+            pros::Rotation vertical;
+
             // constructor
             Drivetrain(
                 std::int8_t left_front_port,
                 std::int8_t left_back_port, 
                 std::int8_t right_front_port,
-                std::int8_t right_back_port
+                std::int8_t right_back_port,
+                std::int8_t imu_port,
+                std::int8_t horizontal_port,
+                std::int8_t vertical_port
             );
 
             /**
@@ -30,6 +38,7 @@ namespace subsystems {
              */
             void set_drive_state(float left_front_p, float left_back_p, float right_front_p, float right_back_p);
             void drive_functions();
+            void field_oriented();
             void set_brake_mode(enum pros::motor_brake_mode_e brake_mode);
     };
 

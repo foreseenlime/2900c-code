@@ -5,7 +5,10 @@ subsystems::Drivetrain drivetrain(
 	LEFTFRONT,
 	LEFTBACK,
 	RIGHTFRONT,
-	RIGHTBACK
+	RIGHTBACK,
+	IMU,
+	HORIZONTAL,
+	VERTICAL
 );
 
 // constructing dr4b

@@ -47,6 +47,8 @@
 #include "2900cInclude/subsystems.hpp"
 #include "2900cInclude/util.hpp"
 #include "2900cInclude/autons.hpp"
+#include "2900cInclude/pid.hpp"
+#include "2900cInclude/odom.hpp"
 
 // subsystem definition for autons
 extern subsystems::Drivetrain drivetrain;

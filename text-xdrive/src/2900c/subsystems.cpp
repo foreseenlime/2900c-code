@@ -9,14 +9,24 @@ namespace subsystems {
             std::int8_t left_front_port,
             std::int8_t left_back_port,
             std::int8_t right_front_port,
-            std::int8_t right_back_port
+            std::int8_t right_back_port,
+            std::int8_t imu_port,
+            std::int8_t horizontal_port,
+            std::int8_t vertical_port
         ):
 
         left_front(pros::Motor(left_front_port)),
         left_back(pros::Motor(left_back_port)),
         right_front(pros::Motor(right_front_port)),
-        right_back(pros::Motor(right_back_port))
-        {}
+        right_back(pros::Motor(right_back_port)),
+
+        imu(pros::Imu(imu_port)),
+        horizontal(pros::Rotation(horizontal_port)),
+        vertical(pros::Rotation(vertical_port))
+        {
+            horizontal.reset_position();
+            vertical.reset_position();
+        }
 
         // set drive state
         void Drivetrain::set_drive_state(float left_front_p, float left_back_p, float right_front_p, float right_back_p) {
@@ -48,6 +58,35 @@ namespace subsystems {
             double forward = linear_to_squared(Controller.get_analog(FORWARD), 127);
             double turn = linear_to_squared(Controller.get_analog(TURN), 127);
             double strafe = linear_to_squared(Controller.get_analog(STRAFE), 127);
+
+            // START OF CODE THAT NEEDS UNDERSTANDING + NOTEBOOKING ------------------------------------------------------------------------
+
+            // same as projectile motion!!
+            // magnitude = velocity
+            // analog_theta = angle of velocity
+            // vertical velocity = forwards
+            // horizontal velocity = strafe
+
+            // first: convert forward + backward joystick values (vertical + horizontal velocities) to a single magnitude + direction (velocity at an angle)
+
+            // gets the distance that the joystick is being moved
+            double magnitude = sqrt(pow(forward, 2) + pow(strafe, 2));
+            // gets the angle that the joystick is being pushed (in radians)
+            double analog_theta = atan2(strafe, forward);
+
+            // get heading in radians
+            double heading = get_rad(imu.get_heading());
+            // get new angle for forwards + strafe
+            // still kinda need to figure out how this works, more of an intermediary step rn
+            double new_dir = analog_theta - heading;
+
+            // convert magnitude (velocity) back to forward + backward (vertical + horizontal) components using the new theta value
+            forward = magnitude * sin(new_dir);
+            strafe = magnitude * cos(new_dir);
+
+            // then continue to conversion to motor values :)
+
+            // END OF CODE THAT NEEDS UNDERSTANDING + NOTEBOOKING --------------------------------------------------------------------
 
             double left_front_p = forward + strafe + turn;
             double left_back_p = forward - strafe + turn;
@@ -83,6 +122,9 @@ namespace subsystems {
             // set brake mode to coast, mostly just in case driver accidentily
             // sets brake mode to hold when we dont want to
             else if(Controller.get_digital(DRIVECOAST)) {set_brake_mode(MOTOR_BRAKE_COAST);}
+
+            // reset imu if needed
+            if(Controller.get_digital(IMURESET)) {imu.tare_heading();}
 
             // print all motor temps to brain console
             console.printf(
