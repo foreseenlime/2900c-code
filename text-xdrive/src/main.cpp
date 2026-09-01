@@ -5,7 +5,10 @@ subsystems::Drivetrain drivetrain(
 	LEFTFRONT,
 	LEFTBACK,
 	RIGHTFRONT,
-	RIGHTBACK
+	RIGHTBACK,
+	IMU,
+	HORIZONTAL,
+	VERTICAL
 );
 
 // constructing dr4b
@@ -16,8 +19,10 @@ subsystems::Lift lift(
 	CLAW_PISTON
 );
 
-// DO THIS FOR DRIVETRAIN: https://www.vexforum.com/t/v5-x-drive-pros-code/62326
-
+rd::Selector selector({
+	{"Toggle only", autons::toggle_only},
+	{"Score preload", autons::score_preload}
+});
 
 /**
  * Runs initialization code. This occurs as soon as the program is started.
@@ -26,7 +31,7 @@ subsystems::Lift lift(
  * to keep execution time for this mode under a few seconds.
  */
 void initialize() {
-	pros::lcd::initialize();
+	lift.set_lift_state(0, 0, true);
 }
 
 /**
@@ -58,7 +63,9 @@ void competition_initialize() {}
  * will be stopped. Re-enabling the robot will restart the task, not re-start it
  * from where it left off.
  */
-void autonomous() {}
+void autonomous() {
+	selector.run_auton();
+}
 
 /**
  * Runs the operator control code. This function will be started in its own task
@@ -77,10 +84,11 @@ void opcontrol() {
 	Controller.clear();
 
 	while (true) {
+		console.clear();
 
 		// get charge and print to controller
 		double charge = pros::battery::get_capacity();
-		Controller.print(0, 0, "Charge: %.0lf%", charge);
+		Controller.print(0, 0, "Charge: %.0lf%%", charge);
 		Controller.clear();
 		pros::delay(20);
 

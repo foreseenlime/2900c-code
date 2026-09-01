@@ -8,7 +8,7 @@ namespace autons {
     * @param direction Direction of movement (F, B, L, R)
     * @param speed Speed of movement (-127 - 127)
     */
-    void drive(char direction, double speed);
+    void drive_move(char direction, double speed);
 
     /**
      * @brief Rotate the drivetrain either clockwise or anticlockwise
@@ -16,9 +16,16 @@ namespace autons {
      * @param direction Direction of rotation (C, A)
      * @param speed Speed of rotation (-127 - 127)
      */
-    void rotate(char direction, double speed);
+    void drive_rotate(char direction, double speed);
 
-    void stop();
+    /**
+     * @brief stop all drivetrain movement
+     */
+    void drive_stop();
+
+    // --------------------------------------------------------------------------------
+    // --------------------------------------------------------------------------------
 
     void toggle_only();
+    void score_preload();
 }

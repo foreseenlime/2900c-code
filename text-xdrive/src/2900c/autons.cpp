@@ -2,7 +2,7 @@
 
 namespace autons {
 
-    void drive(char direction, double speed) {
+    void drive_move(char direction, double speed) {
         switch(direction) {
             case 'F':
                 drivetrain.set_drive_state(speed, speed, speed, speed);
@@ -15,35 +15,30 @@ namespace autons {
         }
     }
 
-    void rotate(char direction, double speed) {
+    void drive_rotate(char direction, double speed) {
         switch(direction) {
             case 'C':
-                // if rotation is clockwise: forward = 0, strafe = 0, turn = 127
-                    // lf = 0+0+127 = 127
-                    // lb = 0-0+127 = 127
-                    // rf = 0-0-127 = -127
-                    // rb = 0+0-127 = -127
                 drivetrain.set_drive_state(speed, speed, -speed, -speed);
             case 'A':
                 drivetrain.set_drive_state(-speed, -speed, speed, speed);
         }
     }
 
-    void stop() {drivetrain.set_drive_state(0, 0, 0, 0);}
+    void drive_stop() {drivetrain.set_drive_state(0, 0, 0, 0);}
 
     void toggle_only() {
-        // drive left
-        // if movement is left: forward = 0, strafe = -127, turn = 0
-            // lf = 0-127+0 = -127
-            // lb = 0+127+0 = 127
-            // rf = 0+127-0 = 127
-            // rb = 0-127-0 = -127
-        drive('L', 127);
+        drive_move('L', 127);
         pros::delay(30);
-        stop();
+        drive_stop();
         pros::delay(10);
-        drive('R', 100);
+        drive_move('R', 100);
         pros::delay(20);
-        stop();
+        drive_stop();
+    }
+
+    void score_preload() {
+        drive_move('R', 50);
+        pros::delay(50);
+        drive_stop();
     }
 }

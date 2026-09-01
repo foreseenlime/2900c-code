@@ -40,16 +40,19 @@
  * You should add more #includes here
  */
 //#include "okapi/api.hpp"
+#include "robodash/api.h"
 
 #include "2900cInclude/globals.h"
 #include "2900cInclude/devices.hpp"
 #include "2900cInclude/subsystems.hpp"
 #include "2900cInclude/util.hpp"
 #include "2900cInclude/autons.hpp"
+#include "2900cInclude/pid.hpp"
+#include "2900cInclude/odom.hpp"
 
-// declaring subsystems for autons
-subsystems::Drivetrain drivetrain;
-subsystems::Lift lift;
+// subsystem definition for autons
+extern subsystems::Drivetrain drivetrain;
+extern subsystems::Lift lift;
 
 /**
  * If you find doing pros::Motor() to be tedious and you'd prefer just to do
