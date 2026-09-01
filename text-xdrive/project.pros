@@ -285,7 +285,7 @@
     },
     "upload_options": {
       "after": "none",
-      "description": "possibly working with auton!!",
+      "description": "field oriented?",
       "icon": "planet",
       "slot": 1
     },

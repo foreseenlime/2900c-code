@@ -12,6 +12,8 @@
     // dr4b ports
         #define LIFTLEFT -20
         #define LIFTRIGHT 19
+        #define LIFTENCODERTOP "G"
+        #define LIFTENCODERBOTTOM "H"
 
     // claw ports
         #define CLAW_MOTOR 11
@@ -37,9 +39,9 @@
 // controls:
 
     // drive
-        #define FORWARD ANALOG_LEFT_Y
+        #define FORWARD ANALOG_LEFT_X
         #define TURN ANALOG_RIGHT_X
-        #define STRAFE ANALOG_LEFT_X
+        #define STRAFE ANALOG_LEFT_Y
 
         #define DRIVEHOLD DIGITAL_Y
         #define DRIVECOAST DIGITAL_B

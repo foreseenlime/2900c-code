@@ -24,6 +24,11 @@ double joystick_to_motor(double joystick, double max_input);
 double get_rad(double deg);
 
 /**
+ * @brief Converts radians to degrees
+ */
+double get_deg(double rad);
+
+/**
  * @brief Convert rotation sensor degrees to distance
  */
 double deg_to_dist(double deg, double diameter);

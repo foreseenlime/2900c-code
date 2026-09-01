@@ -21,6 +21,11 @@ double get_rad(double deg) {
     return (deg / 180) * M_PI;
 }
 
+// convert radians to degrees
+double get_deg(double rad) {
+    return (rad / M_PI) * 180;
+}
+
 // convert rotation sensor degrees to distance
 // distance = rotations * circumference
 double deg_to_dist(double deg, double diameter) {

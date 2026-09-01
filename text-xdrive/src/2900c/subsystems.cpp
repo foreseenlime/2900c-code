@@ -78,10 +78,10 @@ namespace subsystems {
             double heading = get_rad(imu.get_heading());
             // get new angle for forwards + strafe
             // still kinda need to figure out how this works, more of an intermediary step rn
-            double new_dir = analog_theta - heading;
+            double new_dir = analog_theta + heading;
 
             // convert magnitude (velocity) back to forward + backward (vertical + horizontal) components using the new theta value
-            forward = magnitude * sin(new_dir);
+            forward = magnitude * sin(new_dir); // multiply by -1 cause for some reason the movement is backwards
             strafe = magnitude * cos(new_dir);
 
             // then continue to conversion to motor values :)
@@ -198,7 +198,6 @@ namespace subsystems {
             set_lift_state(dr4b_speed, claw_speed, down); 
             
             // print all temps to brain screen
-            std::vector<double> dr4b_temps = dr4b.get_temperature_all();
             console.printf(
                 "dr4b1: %.0lf, dr4b2: %.0lf, claw: %.0lf",
                 dr4b_motor1.get_temperature(), dr4b_motor2.get_temperature(), claw_motor.get_temperature()
