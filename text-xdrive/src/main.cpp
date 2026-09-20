@@ -20,8 +20,7 @@ subsystems::Lift lift(
 );
 
 rd::Selector selector({
-	{"Toggle only", autons::toggle_only},
-	{"Score preload", autons::score_preload}
+	{"Toggle only", autons::toggle_only}
 });
 
 /**
@@ -64,7 +63,7 @@ void competition_initialize() {}
  * from where it left off.
  */
 void autonomous() {
-	selector.run_auton();
+	autons::toggle_only();
 }
 
 /**
