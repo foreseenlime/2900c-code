@@ -124,9 +124,10 @@ namespace subsystems {
             else if(Controller.get_digital(DRIVECOAST)) {set_brake_mode(MOTOR_BRAKE_COAST);}
 
             // reset imu if needed
-            if(Controller.get_digital(IMURESET)) {imu.tare_heading();}
+            if(Controller.get_digital(TAREHEAD)) {imu.tare_heading();}
 
             // print all motor temps to brain console
+            console.printf("Drivetrain:\n");
             console.printf(
                 "LF: %.0lf, LB: %.0lf, RF: %.0lf, RB: %.0lf \n", 
                 left_front.get_temperature(), left_back.get_temperature(), 
@@ -198,6 +199,7 @@ namespace subsystems {
             set_lift_state(dr4b_speed, claw_speed, down); 
             
             // print all temps to brain screen
+            console.printf("Lift:\n");
             console.printf(
                 "dr4b1: %.0lf, dr4b2: %.0lf, claw: %.0lf",
                 dr4b_motor1.get_temperature(), dr4b_motor2.get_temperature(), claw_motor.get_temperature()

@@ -46,7 +46,8 @@
         #define DRIVEHOLD DIGITAL_Y
         #define DRIVECOAST DIGITAL_B
 
-        #define IMURESET DIGITAL_LEFT
+        #define TAREHEAD DIGITAL_LEFT
+        #define IMURESET DIGITAL_UP
 
     // dr4b
         #define LIFTDOWN DIGITAL_R1
