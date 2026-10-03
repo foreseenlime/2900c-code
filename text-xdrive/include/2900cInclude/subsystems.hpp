@@ -4,18 +4,16 @@
 namespace subsystems {
 
     class Drivetrain {
+        public:
+            // odom & motor devices in public so they can be accessed for odom
+            pros::Imu imu;
+            pros::Rotation horizontal;
+            pros::Rotation vertical;
 
-        private:
             pros::Motor left_front;
             pros::Motor left_back;
             pros::Motor right_front;
             pros::Motor right_back;
-
-        public:
-            // odom devices in public so they can be accessed externally
-            pros::Imu imu;
-            pros::Rotation horizontal;
-            pros::Rotation vertical;
 
             // constructor
             Drivetrain(
@@ -46,14 +44,14 @@ namespace subsystems {
 
         private:
             pros::Motor claw_motor;
-            pros::adi::DigitalOut claw_piston;
             double claw_speed;
-            bool down = true;
+            pros::Motor wrist_motor;
+            double wrist_position;
 
             pros::Motor dr4b_motor1;
             pros::Motor dr4b_motor2;
             pros::MotorGroup dr4b;
-
+            pros::adi::Encoder dr4b_encoder;
             double dr4b_speed;
 
         public:
@@ -61,8 +59,10 @@ namespace subsystems {
             Lift( // changing the datatype of all the port variables made it possible to use them in motor groups as intended!!!!!!!!!!!!!! include in design book!!!!!!!!!
                 std::int8_t dr4b_port1,
                 std::int8_t dr4b_port2,
+                std::uint8_t encoder_port_top,
+                std::uint8_t encoder_port_bottom,
                 std::int8_t claw_port,
-                char claw_piston_port
+                std::int8_t wrist_port
             );
 
             /**
@@ -70,9 +70,9 @@ namespace subsystems {
              * 
              * @param lift_speed Speed that the lift motors move (-100 - 100)
              * @param claw_speed Speed that the claw motor moves (-200 - 200)
-             * @param down State of piston that puts the claw down/up (true, false)
+             * @param wrist_speed Position of claw motor ()
              */
-            void set_lift_state(double lift_speed, double claw_speed, bool down);
+            void set_lift_state(double lift_speed, double claw_speed, double wrist_position);
             void lift_functions();
 
     };

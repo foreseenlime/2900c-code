@@ -10,14 +10,14 @@
         #define RIGHTBACK -4
 
     // dr4b ports
-        #define LIFTLEFT -20
-        #define LIFTRIGHT 19
-        #define LIFTENCODERTOP "G"
-        #define LIFTENCODERBOTTOM "H"
+        #define LIFTLEFT 20
+        #define LIFTRIGHT -19
+        #define LIFTENCODERTOP 'G'
+        #define LIFTENCODERBOTTOM 'H'
 
     // claw ports
         #define CLAW_MOTOR 11
-        #define CLAW_PISTON 'A'
+        #define WRIST_MOTOR 12
 
 // odom:
 
@@ -28,13 +28,36 @@
 
     // rotation sensor offsets (unit in inches)
         #define HORIZONTAL_OFFSET 0
-        #define VERTICAL_OFFSET 0
+        #define VERTICAL_OFFSET 4.6
 
     // drivetrain (unit in inches)
         // #define TRACKWIDTH 18 // needs measuring
         // #define WHEELBASE 18 // needs measuring
-        #define CIRCUMFERENCE 4
-        #define TRACKER_CIRCUMFERENCE 2
+        #define BASEWIDTH 17.5
+        #define BASELENGTH 17.5
+        #define BASE_CIRCUM 4
+        #define TRACKER_CIRCUM 2
+
+    // schedular
+        // x_sched
+            #define X_THRESH_1 0
+            #define X_KP_1 0.0
+            #define X_KI_1 0.0
+            #define X_KD_1 0.0
+
+        // y_sched
+            #define Y_THRESH_1 0
+            #define Y_KP_1 0.0
+            #define Y_KI_1 0.0
+            #define Y_KD_1 0.0
+
+        // theta_sched
+            #define THETA_THRESH_1 0
+            #define THETA_KP_1 0.0
+            #define THETA_KI_1 0.0
+            #define THETA_KD_1 0.0
+
+        
 
 // controls:
 

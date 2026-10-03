@@ -12,10 +12,10 @@ struct Rotation_vals {
 namespace Odom {
     // global coordinates
     extern Pose global_point; // x, y, heading
-    extern Pose prev_global_point;
     extern Pose delta_global_point; // change in x, y, angle
 
     // local coordinates
+    extern Pose local_point;
     extern Pose delta_local_point; // change in x, y
 
     // sensor values
@@ -26,6 +26,7 @@ namespace Odom {
     // imu
     extern double heading;
     extern double prev_heading;
+    extern double mid_heading;
     extern double delta_heading; // change in heading
 
     // functions

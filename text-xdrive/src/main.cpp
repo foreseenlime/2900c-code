@@ -11,12 +11,33 @@ subsystems::Drivetrain drivetrain(
 	VERTICAL
 );
 
+// // instantiate odom, chassis, gainschedular, obstaclemanager
+// hololib::ChassisConfig chassis_config = {
+// 	.drivetrainWidth = BASEWIDTH, .drivetrainLength = BASELENGTH,
+// 	.wheelDiameter = BASE_CIRCUM, .gearRatio = 1};
+// hololib::EncoderEKFOdometry odom(
+// 	drivetrain.left_front, drivetrain.right_front, // front motors
+// 	drivetrain.left_back, drivetrain.right_back, // back motors
+// 	drivetrain.imu, chassis_config // imu and config
+// );
+// hololib::Chassis chassis(
+// 	drivetrain.left_front, drivetrain.right_front, // front motors
+// 	drivetrain.left_back, drivetrain.right_back, // back motors
+// 	drivetrain.imu, odom // imu and odom
+// );
+// hololib::GainScheduler x_sched = hololib::GainScheduler();
+// hololib::GainScheduler y_sched = hololib::GainScheduler();
+// hololib::GainScheduler theta_sched = hololib::GainScheduler();
+// hololib::ObstacleManager obstacles = hololib::ObstacleManager();
+
 // constructing dr4b
 subsystems::Lift lift(
 	LIFTLEFT,
 	LIFTRIGHT,
+	LIFTENCODERTOP,
+	LIFTENCODERBOTTOM,
 	CLAW_MOTOR,
-	CLAW_PISTON
+	WRIST_MOTOR
 );
 
 rd::Selector selector({
@@ -30,7 +51,7 @@ rd::Selector selector({
  * to keep execution time for this mode under a few seconds.
  */
 void initialize() {
-	lift.set_lift_state(0, 0, true);
+	lift.set_lift_state(0, 0, 0);
 }
 
 /**
@@ -82,9 +103,9 @@ void autonomous() {
 void opcontrol() {
 	Controller.clear();
 
-	while (true) {
-		console.clear();
+	pros::Task odometry(Odom::run_odometry);
 
+	while (true) {
 		// get charge and print to controller
 		double charge = pros::battery::get_capacity();
 		Controller.print(0, 0, "Charge: %.0lf%%", charge);

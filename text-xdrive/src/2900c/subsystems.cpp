@@ -127,12 +127,12 @@ namespace subsystems {
             if(Controller.get_digital(TAREHEAD)) {imu.tare_heading();}
 
             // print all motor temps to brain console
-            console.printf("Drivetrain:\n");
-            console.printf(
-                "LF: %.0lf, LB: %.0lf, RF: %.0lf, RB: %.0lf \n", 
-                left_front.get_temperature(), left_back.get_temperature(), 
-                right_front.get_temperature(), right_back.get_temperature()
-            );
+            // console.printf("Drivetrain:\n");
+            // console.printf(
+            //     "LF: %.0lf, LB: %.0lf, RF: %.0lf, RB: %.0lf \n", 
+            //     left_front.get_temperature(), left_back.get_temperature(), 
+            //     right_front.get_temperature(), right_back.get_temperature()
+            // );
         }
 
     // --------------------------------------------------------------------------------
@@ -141,40 +141,50 @@ namespace subsystems {
     // dr4b class
 
         // constructor
-        Lift::Lift(std::int8_t dr4b_port1, std::int8_t dr4b_port2,
-        std::int8_t claw_port, char claw_piston_port):
+        Lift::Lift(
+            std::int8_t dr4b_port1, std::int8_t dr4b_port2,
+            std::uint8_t encoder_port_top, std::uint8_t encoder_port_bottom,
+            std::int8_t claw_port, std::int8_t wrist_port):
 
         dr4b_motor1(pros::Motor(dr4b_port1, pros::MotorGearset::red)),
         dr4b_motor2(pros::Motor(dr4b_port2, pros::MotorGearset::red)),
 
         dr4b(pros::MotorGroup({dr4b_port1, dr4b_port2}, pros::MotorGearset::red)),
+        dr4b_encoder(pros::adi::Encoder(encoder_port_top, encoder_port_bottom)),
 
         claw_motor(pros::Motor(claw_port)),
-        claw_piston(pros::adi::DigitalOut(claw_piston_port))
+        wrist_motor(pros::Motor(wrist_port))
         {
             dr4b_motor1.set_brake_mode(pros::E_MOTOR_BRAKE_HOLD);
             dr4b_motor2.set_brake_mode(pros::E_MOTOR_BRAKE_HOLD);
             claw_motor.set_brake_mode(pros::E_MOTOR_BRAKE_HOLD);
+            wrist_motor.set_brake_mode(pros::E_MOTOR_BRAKE_HOLD);
 
-            claw_piston.set_value(true);
+            dr4b_encoder.reset();
+            wrist_motor.tare_position();
         }
 
-        void Lift::set_lift_state(double lift_speed, double claw_speed, bool down) {
+        void Lift::set_lift_state(double lift_speed, double claw_speed, double wrist_position) {
             dr4b.move_velocity(floor(lift_speed));
             claw_motor.move_velocity(floor(claw_speed));
-            claw_piston.set_value(down);
+            wrist_motor.move_velocity(floor(wrist_position));
 
             // if either voltage is 0 brake them
             if(lift_speed == 0) {dr4b.brake();}
             if(claw_speed == 0) {claw_motor.brake();}
+            if(wrist_position == 0) {wrist_motor.brake();}
+
+            // if( // if wrist motor is within the accepted range, brake
+            //     (wrist_motor.get_position() < wrist_position + 3) && 
+            //     (wrist_motor.get_position() > wrist_position - 3))
+            //     {
+            //         wrist_motor.brake();
+            //     }
         }
 
         void Lift::lift_functions() {
             // move dr4b up
-            if(Controller.get_digital(LIFTDOWN)) {
-                dr4b_speed = -100;
-                down = false;
-            }
+            if(Controller.get_digital(LIFTDOWN)) {dr4b_speed = -100;}
 
             // move dr4b down
             else if(Controller.get_digital(LIFTUP)) {dr4b_speed = 100;}
@@ -191,19 +201,23 @@ namespace subsystems {
 
             else {claw_speed = 0;}
 
-            // toggle claw downwards
-            if(Controller.get_digital(CLAWDOWN)) {down = true;}
+            // toggle claw downwards for intaking
+            if(Controller.get_digital(CLAWDOWN)) {wrist_position = -50;}
+            
+            // toggle claw upwards for scoring
+            else if(Controller.get_digital(CLAWUP)) {wrist_position = 50;}
 
-            else if(Controller.get_digital(CLAWUP)) {down = false;}
+            else {wrist_position = 0;}
 
-            set_lift_state(dr4b_speed, claw_speed, down); 
+            set_lift_state(dr4b_speed, claw_speed, wrist_position); 
             
             // print all temps to brain screen
-            console.printf("Lift:\n");
-            console.printf(
-                "dr4b1: %.0lf, dr4b2: %.0lf, claw: %.0lf",
-                dr4b_motor1.get_temperature(), dr4b_motor2.get_temperature(), claw_motor.get_temperature()
-            );
+            // console.printf("Lift:\n");
+            // console.printf(
+            //     "dr4b1: %.0lf, dr4b2: %.0lf, claw: %.0lf, wrist: %.0lf",
+            //     dr4b_motor1.get_temperature(), dr4b_motor2.get_temperature(), 
+            //     claw_motor.get_temperature(), wrist_motor.get_temperature()
+            // );
         }
 
 }
