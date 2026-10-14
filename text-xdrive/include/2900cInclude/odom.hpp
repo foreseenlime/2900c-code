@@ -1,10 +1,6 @@
 #pragma once
 #include "main.h"
 
-struct Pose {
-    double x, y, heading;
-};
-
 struct Rotation_vals {
     double horizontal, vertical;
 };

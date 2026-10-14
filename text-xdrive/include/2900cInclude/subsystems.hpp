@@ -29,14 +29,10 @@ namespace subsystems {
             /**
              * @brief Sets the voltage for each motor in the drivetrain (-127 - 127)
              * 
-             * @param left_front_p Left front motor voltage
-             * @param left_back_p Left back motor voltage
-             * @param right_front_p Right front motor voltage
-             * @param right_back_p Right back motor voltage
+             * @param motor_inputs Struct containing all motor input values
              */
-            void set_drive_state(float left_front_p, float left_back_p, float right_front_p, float right_back_p);
+            void set_drive_state(Motor_Inputs motor_inputs);
             void drive_functions();
-            void field_oriented();
             void set_brake_mode(enum pros::motor_brake_mode_e brake_mode);
     };
 
@@ -50,7 +46,6 @@ namespace subsystems {
 
             pros::Motor dr4b_motor1;
             pros::Motor dr4b_motor2;
-            pros::MotorGroup dr4b;
             pros::adi::Encoder dr4b_encoder;
             double dr4b_speed;
 

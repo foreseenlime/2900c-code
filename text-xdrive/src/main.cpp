@@ -11,6 +11,13 @@ subsystems::Drivetrain drivetrain(
 	VERTICAL
 );
 
+// pid class
+PID pid(
+	KP, KI, KD,
+	KP_TURN, KD_TURN,
+	MAX_INTEGRAL
+);
+
 // // instantiate odom, chassis, gainschedular, obstaclemanager
 // hololib::ChassisConfig chassis_config = {
 // 	.drivetrainWidth = BASEWIDTH, .drivetrainLength = BASELENGTH,
@@ -40,9 +47,10 @@ subsystems::Lift lift(
 	WRIST_MOTOR
 );
 
-rd::Selector selector({
-	{"Toggle only", autons::toggle_only}
-});
+// toggle solanoid
+pros::adi::Pneumatics toggle(TOGGLE, true);
+
+// rd::Selector selector({});
 
 /**
  * Runs initialization code. This occurs as soon as the program is started.
@@ -52,6 +60,9 @@ rd::Selector selector({
  */
 void initialize() {
 	lift.set_lift_state(0, 0, 0);
+	toggle.set_value(true);
+	// odom task needs starting here so its ready for autons
+	pros::Task odometry(Odom::run_odometry);
 }
 
 /**
@@ -84,7 +95,10 @@ void competition_initialize() {}
  * from where it left off.
  */
 void autonomous() {
-	autons::toggle_only();
+	toggle.set_value(false);
+	pros::delay(200); // delay so toggles will fully deploy
+
+	autons::hardcoded_toggleonly();
 }
 
 /**
@@ -102,8 +116,8 @@ void autonomous() {
  */
 void opcontrol() {
 	Controller.clear();
-
-	pros::Task odometry(Odom::run_odometry);
+	toggle.set_value(false);
+	
 
 	while (true) {
 		// get charge and print to controller

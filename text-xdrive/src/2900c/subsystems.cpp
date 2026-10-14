@@ -29,15 +29,18 @@ namespace subsystems {
         }
 
         // set drive state
-        void Drivetrain::set_drive_state(float left_front_p, float left_back_p, float right_front_p, float right_back_p) {
-            left_front.move(left_front_p);
-            left_back.move(left_back_p);
-            right_front.move(right_front_p);
-            right_back.move(right_back_p);
+        void Drivetrain::set_drive_state(Motor_Inputs motor_inputs) {
+            left_front.move(floor(motor_inputs.left_front));
+            left_back.move(floor(motor_inputs.left_back));
+            right_front.move(floor(motor_inputs.right_front));
+            right_back.move(floor(motor_inputs.right_back));
 
             // if joysticks aren't being pressed, brake motors
             // this part is required to use our koth brake hold mode
-            if(left_front_p == 0 && left_back_p == 0 && right_front_p == 0 && right_back_p == 0){
+            if(
+                motor_inputs.left_front == 0 && motor_inputs.left_back == 0 &&
+                motor_inputs.right_front == 0 && motor_inputs.right_back == 0
+            ){
                 left_front.brake();
                 left_back.brake();
                 right_front.brake();
@@ -59,62 +62,54 @@ namespace subsystems {
             double turn = linear_to_squared(Controller.get_analog(TURN), 127);
             double strafe = linear_to_squared(Controller.get_analog(STRAFE), 127);
 
-            // START OF CODE THAT NEEDS UNDERSTANDING + NOTEBOOKING ------------------------------------------------------------------------
-
-            // same as projectile motion!!
-            // magnitude = velocity
-            // analog_theta = angle of velocity
-            // vertical velocity = forwards
-            // horizontal velocity = strafe
-
-            // first: convert forward + backward joystick values (vertical + horizontal velocities) to a single magnitude + direction (velocity at an angle)
-
             // gets the distance that the joystick is being moved
             double magnitude = sqrt(pow(forward, 2) + pow(strafe, 2));
             // gets the angle that the joystick is being pushed (in radians)
             double analog_theta = atan2(strafe, forward);
 
-            // get heading in radians
-            double heading = get_rad(imu.get_heading());
             // get new angle for forwards + strafe
             // still kinda need to figure out how this works, more of an intermediary step rn
-            double new_dir = analog_theta + heading;
+            double new_dir = analog_theta + Odom::global_point.heading;
 
             // convert magnitude (velocity) back to forward + backward (vertical + horizontal) components using the new theta value
-            forward = magnitude * sin(new_dir); // multiply by -1 cause for some reason the movement is backwards
+            forward = magnitude * sin(new_dir);
             strafe = magnitude * cos(new_dir);
 
             // then continue to conversion to motor values :)
 
             // END OF CODE THAT NEEDS UNDERSTANDING + NOTEBOOKING --------------------------------------------------------------------
 
-            double left_front_p = forward + strafe + turn;
-            double left_back_p = forward - strafe + turn;
-            double right_front_p = forward - strafe - turn;
-            double right_back_p = forward + strafe - turn;
+            Motor_Inputs motor_inputs = {
+                forward + strafe + turn, // left front
+                forward - strafe + turn, // left back
+                forward - strafe - turn, // right front
+                forward + strafe - turn // right back
+            };
 
-            // find highest of motor inputs
-            double max_val = std::abs(left_front_p);
-            if(std::abs(left_back_p) > max_val) {max_val = std::abs(left_back_p);}
-            else if(std::abs(right_front_p) > max_val) {max_val = std::abs(right_front_p);}
-            else if(std::abs(right_back_p) > max_val) {max_val = std::abs(right_back_p);}
+            // double left_front_p = forward + strafe + turn;
+            // double left_back_p = forward - strafe + turn;
+            // double right_front_p = forward - strafe - turn;
+            // double right_back_p = forward + strafe - turn;
 
-            // scale to the valid motor range
-            if (max_val > 127) {
-                double scale = 127 / max_val;
-                left_front_p *= scale;
-                left_back_p *= scale;
-                right_front_p *= scale;
-                right_back_p *= scale;
-            }
+            // // find highest of motor inputs
+            // double max_val = std::abs(left_front_p);
+            // if(std::abs(left_back_p) > max_val) {max_val = std::abs(left_back_p);}
+            // else if(std::abs(right_front_p) > max_val) {max_val = std::abs(right_front_p);}
+            // else if(std::abs(right_back_p) > max_val) {max_val = std::abs(right_back_p);}
+
+            // // scale to the valid motor range
+            // if (max_val > 127) {
+            //     double scale = 127 / max_val;
+            //     left_front_p *= scale;
+            //     left_back_p *= scale;
+            //     right_front_p *= scale;
+            //     right_back_p *= scale;
+            // }
+
+            motor_inputs = scale_to_motor(motor_inputs);
 
             // set the drivetrain power state
-            set_drive_state(
-                floor(left_front_p), 
-                floor(left_back_p), 
-                floor(right_front_p), 
-                floor(right_back_p)
-            );
+            set_drive_state(motor_inputs);
 
             // set brake mode to hold for koth, makes us harder to push
             if(Controller.get_digital(DRIVEHOLD)) {set_brake_mode(MOTOR_BRAKE_HOLD);}
@@ -148,8 +143,6 @@ namespace subsystems {
 
         dr4b_motor1(pros::Motor(dr4b_port1, pros::MotorGearset::red)),
         dr4b_motor2(pros::Motor(dr4b_port2, pros::MotorGearset::red)),
-
-        dr4b(pros::MotorGroup({dr4b_port1, dr4b_port2}, pros::MotorGearset::red)),
         dr4b_encoder(pros::adi::Encoder(encoder_port_top, encoder_port_bottom)),
 
         claw_motor(pros::Motor(claw_port)),
@@ -165,12 +158,17 @@ namespace subsystems {
         }
 
         void Lift::set_lift_state(double lift_speed, double claw_speed, double wrist_position) {
-            dr4b.move_velocity(floor(lift_speed));
+            dr4b_motor1.move_velocity(floor(lift_speed));
+            // double motor2_speed = std::clamp<double>((lift_speed - 10), 0, 127);
+            dr4b_motor2.move_velocity(floor(lift_speed));
             claw_motor.move_velocity(floor(claw_speed));
             wrist_motor.move_velocity(floor(wrist_position));
 
             // if either voltage is 0 brake them
-            if(lift_speed == 0) {dr4b.brake();}
+            if(lift_speed == 0) {
+                dr4b_motor1.brake();
+                dr4b_motor2.brake();
+            }
             if(claw_speed == 0) {claw_motor.brake();}
             if(wrist_position == 0) {wrist_motor.brake();}
 
@@ -202,10 +200,10 @@ namespace subsystems {
             else {claw_speed = 0;}
 
             // toggle claw downwards for intaking
-            if(Controller.get_digital(CLAWDOWN)) {wrist_position = -50;}
+            if(Controller.get_digital(CLAWDOWN)) {wrist_position = -150;}
             
             // toggle claw upwards for scoring
-            else if(Controller.get_digital(CLAWUP)) {wrist_position = 50;}
+            else if(Controller.get_digital(CLAWUP)) {wrist_position = 150;}
 
             else {wrist_position = 0;}
 
@@ -219,5 +217,4 @@ namespace subsystems {
             //     claw_motor.get_temperature(), wrist_motor.get_temperature()
             // );
         }
-
 }

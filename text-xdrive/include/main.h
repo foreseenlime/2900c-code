@@ -40,21 +40,20 @@
  * You should add more #includes here
  */
 
-#include <thread>
-
 #include "robodash/api.h"
 
 #include "2900cInclude/globals.h"
 #include "2900cInclude/devices.hpp"
-#include "2900cInclude/subsystems.hpp"
 #include "2900cInclude/util.hpp"
+#include "2900cInclude/subsystems.hpp"
 #include "2900cInclude/autons.hpp"
 #include "2900cInclude/pid.hpp"
 #include "2900cInclude/odom.hpp"
 
-// subsystem definition for autons
+// drivetrain needs to be here for pid
 extern subsystems::Drivetrain drivetrain;
-extern subsystems::Lift lift;
+// pid declaration for auton file
+extern PID pid;
 
 /**
  * If you find doing pros::Motor() to be tedious and you'd prefer just to do

@@ -56,7 +56,7 @@ namespace Odom {
 
     void update_position() {
         // robot movement = recorded movement +/- encoder movement caused by rotation
-        delta_local_point.x = delta_rotation_val.horizontal; // horizontal offset is 0 so no need
+        delta_local_point.x = delta_rotation_val.horizontal + (HORIZONTAL_OFFSET * delta_heading);
         delta_local_point.y = delta_rotation_val.vertical + (VERTICAL_OFFSET * delta_heading);
 
         // local points for the sake of debugging
@@ -77,7 +77,7 @@ namespace Odom {
     // odom thread
     void run_odometry() {
         while(true) {
-            // stop it running if imu is still calibrating
+            // reset loop if imu is still calibrating
             if(drivetrain.imu.is_calibrating()){continue;}
 
             console.clear();
@@ -91,7 +91,13 @@ namespace Odom {
                 get_deg(global_point.heading)
             );
 
-            pros::delay(20);
+            // console.printf(
+            //     "raw + correction\n%.3lf + %.3lf",
+            //     delta_rotation_val.horizontal, (HORIZONTAL_OFFSET * delta_heading)
+            // );
+
+            // slower delays bugs out rotation sensors
+            pros::delay(30);
         }
     }
 }
